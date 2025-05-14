@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 dotenv.config();
@@ -55,17 +55,17 @@ export class AppService {
       };
     } catch (err: any) {
       const error = err as {
-        response: { status: number; data: { code: number } };
+        response: { status: number; data: { error: { code: number } } };
       };
 
       const status = error.response.status;
-      const code = error.response.data.code;
+      const code = error.response.data.error.code;
 
       if (status === 400 && code === 1006) {
-        return { statusCode: 404, message: 'City not found' };
+        throw new HttpException('City not found', HttpStatus.NOT_FOUND);
       }
 
-      return { statusCode: 400, message: 'Invalid request' };
+      throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
     }
   }
 }
