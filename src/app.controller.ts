@@ -5,38 +5,46 @@ import {
   Body,
   HttpException,
   HttpStatus,
+  Post,
 } from '@nestjs/common';
-import { AppService } from './app.service';
+import { AppService, type GetWeatherResponse } from './app.service';
+import { z } from 'zod';
+
+class SubscribeDto {
+  email: string;
+  city: string;
+  frequency: string;
+}
+
+const subscribeSchema = z.object({
+  email: z.string().email(),
+  city: z.string().min(1),
+  frequency: z.enum(['hourly', 'daily']),
+});
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('weather')
-  async getWeather(@Query('city') city: string): Promise<any> {
+  getWeather(@Query('city') city: string): Promise<GetWeatherResponse> {
     if (!city) {
       throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
     }
-    return await this.appService.getWeather(city);
+    return this.appService.getWeather(city);
   }
 
-  // @Post('subscribe')
-  // subscribe(
-  //   @Body() body: { email: string; city: string; frequency: string },
-  // ): Promise<{ statusCode: number; message: string }> {
-  //   const { email, city, frequency } = body;
+  @Post('subscribe')
+  subscribe(@Body() body: SubscribeDto): Promise<string> {
+    const { email, city, frequency } = body;
 
-  //   // Validate input
-  //   if (!email || !city || !frequency) {
-  //     return { statusCode: 400, message: 'Invalid input' };
-  //   }
+    try {
+      subscribeSchema.parse(body);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_: unknown) {
+      throw new HttpException('Invalid input', HttpStatus.BAD_REQUEST);
+    }
 
-  //   // Placeholder for database interaction
-  //   // TODO: Add logic to save subscription to the database
-
-  //   return {
-  //     statusCode: 200,
-  //     message: 'Subscription successful. Confirmation email sent.',
-  //   };
-  // }
+    return this.appService.subscribe(email, city, frequency);
+  }
 }

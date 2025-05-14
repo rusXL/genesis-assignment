@@ -1,10 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { Repository } from 'typeorm';
+import { Subscription } from './subscription.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+
 import * as dotenv from 'dotenv';
 dotenv.config();
-
 const apiKey = process.env.Weather_API_KEY;
-
 if (!apiKey) {
   throw new Error('API key is missing in the environment variables');
 }
@@ -20,6 +22,8 @@ type Error = {
   message: string;
 };
 
+export type GetWeatherResponse = Response | Error;
+
 type WeatherApiResponse = {
   current: {
     temp_c: number;
@@ -32,11 +36,35 @@ type WeatherApiResponse = {
 
 @Injectable()
 export class AppService {
+  constructor(
+    @InjectRepository(Subscription)
+    private subscriptionRepository: Repository<Subscription>,
+  ) {}
+
   getHello(): string {
     return 'Hello World!';
   }
 
-  async getWeather(city: string): Promise<Response | Error> {
+  async subscribe(
+    email: string,
+    city: string,
+    frequency: string,
+  ): Promise<string> {
+    const subscription = this.subscriptionRepository.create({
+      email,
+      city,
+      frequency,
+      confirmed: false,
+    });
+
+    // TODO: 409, Email already subscribed
+
+    await this.subscriptionRepository.save(subscription);
+
+    return 'Subscription successful. Confirmation email sent.';
+  }
+
+  async getWeather(city: string): Promise<GetWeatherResponse> {
     try {
       const response = await axios.get<WeatherApiResponse>(
         `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}`,
