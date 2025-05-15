@@ -1,6 +1,6 @@
 import {
+  BadRequestException,
   ConflictException,
-  HttpException,
   HttpStatus,
   Injectable,
   NotFoundException,
@@ -73,11 +73,11 @@ export class AppService {
       const code = error.response.data.error.code;
 
       if (status === 400 && code === 1006) {
-        throw new HttpException('City not found', HttpStatus.NOT_FOUND);
+        throw new NotFoundException('City not found');
       }
 
       // should not happen
-      throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException();
     }
   }
 
@@ -85,7 +85,7 @@ export class AppService {
     email: string,
     city: string,
     frequency: string,
-  ): Promise<string> {
+  ): Promise<any> {
     try {
       await axios.get<WeatherApiResponse>(
         `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}`,
@@ -98,13 +98,13 @@ export class AppService {
       const status = error.response.status;
       const code = error.response.data.error.code;
 
-      // what if city not found?
+      // city not found
       if (status === 400 && code === 1006) {
-        throw new HttpException('City not found', HttpStatus.NOT_FOUND);
+        throw new BadRequestException('Invalid input');
       }
 
       // should not happen
-      throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException();
     }
 
     const existingSubscription = await this.subscriptionRepository.findOne({
@@ -116,7 +116,7 @@ export class AppService {
     });
 
     if (existingSubscription) {
-      throw new ConflictException('Email already subscribed.');
+      throw new ConflictException('Email already subscribed');
     }
 
     const newSubscription = this.subscriptionRepository.create({
@@ -131,7 +131,10 @@ export class AppService {
 
     console.log(savedSubscription.id);
 
-    return 'Subscription successful. Confirmation email sent.';
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Subscription successful. Confirmation email sent',
+    };
   }
 
   async confirm(token: string): Promise<string> {

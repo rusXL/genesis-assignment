@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Post,
   Param,
+  BadRequestException,
 } from '@nestjs/common';
 import { AppService, type GetWeatherResponse } from './app.service';
 import { z } from 'zod';
@@ -37,21 +38,21 @@ export class AppController {
       citySchema.parse(city);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_: any) {
-      throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException('Invalid request');
     }
     return this.appService.getWeather(city);
   }
 
   @Post('subscribe')
-  subscribe(@Body() body: SubscribeDto): Promise<string> {
-    const { email, city, frequency } = body;
-
+  subscribe(@Body() body: SubscribeDto): Promise<any> {
     try {
       subscribeSchema.parse(body);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_: any) {
-      throw new HttpException('Invalid input', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException('Invalid input');
     }
+
+    const { email, city, frequency } = body;
 
     return this.appService.subscribe(email, city, frequency);
   }
