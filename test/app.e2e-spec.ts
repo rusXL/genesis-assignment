@@ -12,6 +12,8 @@ import { getDataSourceToken } from '@nestjs/typeorm';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
+  let dataSource: DataSource;
+  let validToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -21,12 +23,18 @@ describe('AppController (e2e)', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    const dataSource = app.get<DataSource>(getDataSourceToken());
+    dataSource = app.get<DataSource>(getDataSourceToken());
     await dataSource.dropDatabase();
     await dataSource.synchronize();
   });
 
   describe('/weather (GET)', () => {
+    const badRequest = {
+      statusCode: HttpStatus.BAD_REQUEST,
+      error: 'Bad Request',
+      message: 'Invalid request',
+    };
+
     it('should work with valid city', async () => {
       const city = 'London';
       const response = await request(app.getHttpServer())
@@ -39,12 +47,6 @@ describe('AppController (e2e)', () => {
     });
 
     it('should throw with invalid city', async () => {
-      const badRequest = {
-        statusCode: HttpStatus.BAD_REQUEST,
-        error: 'Bad Request',
-        message: 'Invalid request',
-      };
-
       await request(app.getHttpServer()).get(`/weather`).expect(badRequest);
 
       await request(app.getHttpServer())
@@ -60,10 +62,17 @@ describe('AppController (e2e)', () => {
   });
 
   describe('/subscribe (POST)', () => {
-    const okRequest = {
+    const badRequest = {
+      statusCode: HttpStatus.BAD_REQUEST,
+      error: 'Bad Request',
+      message: 'Invalid input',
+    };
+
+    const ok = expect.objectContaining({
       statusCode: HttpStatus.OK,
       message: 'Subscription successful. Confirmation email sent',
-    };
+      token: expect.any(String),
+    });
 
     it('should work with valid email, city, frequency', async () => {
       const validInput = {
@@ -72,10 +81,13 @@ describe('AppController (e2e)', () => {
         frequency: 'daily',
       };
 
-      await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post('/subscribe')
-        .send(validInput)
-        .expect(okRequest);
+        .send(validInput);
+
+      expect(response.body).toEqual(ok);
+
+      validToken = response.body.token;
     });
 
     it('should throw with invalid input', async () => {
@@ -83,12 +95,6 @@ describe('AppController (e2e)', () => {
         email: 'test@example.com',
         city: 'London',
         frequency: 'daily',
-      };
-
-      const badRequest = {
-        statusCode: HttpStatus.BAD_REQUEST,
-        error: 'Bad Request',
-        message: 'Invalid input',
       };
 
       await request(app.getHttpServer())
@@ -135,10 +141,11 @@ describe('AppController (e2e)', () => {
         frequency: 'daily',
       };
 
-      await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post('/subscribe')
-        .send(validInput)
-        .expect(okRequest);
+        .send(validInput);
+
+      expect(response.body).toEqual(ok);
 
       await request(app.getHttpServer())
         .post('/subscribe')
@@ -148,6 +155,76 @@ describe('AppController (e2e)', () => {
           error: 'Conflict',
           message: 'Email already subscribed',
         });
+    });
+  });
+
+  const invalidToken = {
+    statusCode: HttpStatus.BAD_REQUEST,
+    error: 'Bad Request',
+    message: 'Invalid token',
+  };
+
+  const notFoundToken = {
+    statusCode: HttpStatus.NOT_FOUND,
+    error: 'Not Found',
+    message: 'Token not found',
+  };
+
+  describe('/confirm/:token (GET)', () => {
+    const ok = {
+      statusCode: HttpStatus.OK,
+      message: 'Subscription confirmed successfully',
+    };
+
+    it('should work with valid token ', async () => {
+      await request(app.getHttpServer())
+        .get(`/confirm/${validToken}`)
+        .expect(ok);
+    });
+
+    it('should revert for invalid token ', async () => {
+      await request(app.getHttpServer())
+        .get(`/confirm/invalid-token}`)
+        .expect(invalidToken);
+    });
+
+    it('should revert if token not found', async () => {
+      await request(app.getHttpServer())
+        .get(`/confirm/00000000-0000-0000-0000-000000000000`)
+        .expect(notFoundToken);
+    });
+
+    // ! change to docs
+    it('should revert if subscription already confirmed', async () => {
+      await request(app.getHttpServer()).get(`/confirm/${validToken}`).expect({
+        statusCode: HttpStatus.OK,
+        message: 'Subscription already confirmed',
+      });
+    });
+  });
+
+  describe('/unsubscribe/:token (GET)', () => {
+    const ok = {
+      statusCode: HttpStatus.OK,
+      message: 'Unsubscribed successfully',
+    };
+
+    it('should work with valid token', async () => {
+      await request(app.getHttpServer())
+        .get(`/unsubscribe/${validToken}`)
+        .expect(ok);
+    });
+
+    it('should revert for invalid token', async () => {
+      await request(app.getHttpServer())
+        .get(`/unsubscribe/invalid-token`)
+        .expect(invalidToken);
+    });
+
+    it('should revert if token not found', async () => {
+      await request(app.getHttpServer())
+        .get(`/unsubscribe/00000000-0000-0000-0000-000000000000`)
+        .expect(notFoundToken);
     });
   });
 

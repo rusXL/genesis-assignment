@@ -3,8 +3,6 @@ import {
   Get,
   Query,
   Body,
-  HttpException,
-  HttpStatus,
   Post,
   Param,
   BadRequestException,
@@ -58,24 +56,24 @@ export class AppController {
   }
 
   @Get('confirm/:token')
-  async confirmSubscription(@Param('token') token: string): Promise<string> {
+  async confirmSubscription(@Param('token') token: string): Promise<any> {
     try {
       uuidSchema.parse(token);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_: any) {
-      throw new HttpException('Invalid token', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException('Invalid token');
     }
 
     return this.appService.confirm(token);
   }
 
   @Get('unsubscribe/:token')
-  async unsubscribe(@Param('token') token: string): Promise<string> {
+  async unsubscribe(@Param('token') token: string): Promise<any> {
     try {
       uuidSchema.parse(token);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_: any) {
-      throw new HttpException('Invalid token', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException('Invalid token');
     }
 
     return this.appService.unsubscribe(token);

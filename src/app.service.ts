@@ -129,44 +129,52 @@ export class AppService {
     const savedSubscription =
       await this.subscriptionRepository.save(newSubscription);
 
-    console.log(savedSubscription.id);
-
     return {
       statusCode: HttpStatus.OK,
       message: 'Subscription successful. Confirmation email sent',
+      token: savedSubscription.id,
     };
   }
 
-  async confirm(token: string): Promise<string> {
+  async confirm(token: string): Promise<any> {
     const subscription = await this.subscriptionRepository.findOne({
       where: { id: token },
     });
 
     if (!subscription) {
-      throw new NotFoundException('Token not found.');
+      throw new NotFoundException('Token not found');
     }
 
     if (subscription.confirmed) {
-      return 'Subscription already confirmed.';
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Subscription already confirmed',
+      };
     }
 
     subscription.confirmed = true;
     await this.subscriptionRepository.save(subscription);
 
-    return 'Subscription confirmed successfully.';
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Subscription confirmed successfully',
+    };
   }
 
-  async unsubscribe(token: string): Promise<string> {
+  async unsubscribe(token: string): Promise<any> {
     const subscription = await this.subscriptionRepository.findOne({
       where: { id: token },
     });
 
     if (!subscription) {
-      throw new NotFoundException('Token not found.');
+      throw new NotFoundException('Token not found');
     }
 
     await this.subscriptionRepository.remove(subscription);
 
-    return 'Unsubscribed successfully.';
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Unsubscribed successfully',
+    };
   }
 }
