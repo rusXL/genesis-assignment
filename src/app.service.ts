@@ -47,27 +47,37 @@ export class AppService {
     private subscriptionRepository: Repository<Subscription>,
   ) {}
 
-  getHello(): string {
-    return 'Hello World!';
-  }
+  async getWeather(city: string): Promise<GetWeatherResponse> {
+    try {
+      const response = await axios.get<WeatherApiResponse>(
+        `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}`,
+      );
 
-  async confirm(token: string): Promise<string> {
-    const subscription = await this.subscriptionRepository.findOne({
-      where: { id: token },
-    });
+      const {
+        temp_c: temperature,
+        humidity,
+        condition: { text: description },
+      } = response.data.current;
 
-    if (!subscription) {
-      throw new NotFoundException('Token not found.');
+      return {
+        temperature,
+        humidity,
+        description,
+      };
+    } catch (err: any) {
+      const error = err as {
+        response: { status: number; data: { error: { code: number } } };
+      };
+
+      const status = error.response.status;
+      const code = error.response.data.error.code;
+
+      if (status === 400 && code === 1006) {
+        throw new HttpException('City not found', HttpStatus.NOT_FOUND);
+      }
+
+      throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
     }
-
-    if (subscription.confirmed) {
-      return 'Subscription already confirmed.';
-    }
-
-    subscription.confirmed = true;
-    await this.subscriptionRepository.save(subscription);
-
-    return 'Subscription confirmed successfully.';
   }
 
   async subscribe(
@@ -102,37 +112,23 @@ export class AppService {
     return 'Subscription successful. Confirmation email sent.';
   }
 
-  async getWeather(city: string): Promise<GetWeatherResponse> {
-    try {
-      const response = await axios.get<WeatherApiResponse>(
-        `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}`,
-      );
+  async confirm(token: string): Promise<string> {
+    const subscription = await this.subscriptionRepository.findOne({
+      where: { id: token },
+    });
 
-      const {
-        temp_c: temperature,
-        humidity,
-        condition: { text: description },
-      } = response.data.current;
-
-      return {
-        temperature,
-        humidity,
-        description,
-      };
-    } catch (err: any) {
-      const error = err as {
-        response: { status: number; data: { error: { code: number } } };
-      };
-
-      const status = error.response.status;
-      const code = error.response.data.error.code;
-
-      if (status === 400 && code === 1006) {
-        throw new HttpException('City not found', HttpStatus.NOT_FOUND);
-      }
-
-      throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
+    if (!subscription) {
+      throw new NotFoundException('Token not found.');
     }
+
+    if (subscription.confirmed) {
+      return 'Subscription already confirmed.';
+    }
+
+    subscription.confirmed = true;
+    await this.subscriptionRepository.save(subscription);
+
+    return 'Subscription confirmed successfully.';
   }
 
   async unsubscribe(token: string): Promise<string> {
