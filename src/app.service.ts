@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import axios from 'axios';
 import { Repository } from 'typeorm';
 import { Subscription } from './subscription.entity';
@@ -45,21 +51,53 @@ export class AppService {
     return 'Hello World!';
   }
 
+  async confirm(token: string): Promise<string> {
+    const subscription = await this.subscriptionRepository.findOne({
+      where: { id: token },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('Token not found.');
+    }
+
+    if (subscription.confirmed) {
+      return 'Subscription already confirmed.';
+    }
+
+    subscription.confirmed = true;
+    await this.subscriptionRepository.save(subscription);
+
+    return 'Subscription confirmed successfully.';
+  }
+
   async subscribe(
     email: string,
     city: string,
     frequency: string,
   ): Promise<string> {
-    const subscription = this.subscriptionRepository.create({
+    const existingSubscription = await this.subscriptionRepository.findOne({
+      where: {
+        email,
+        city,
+        // confirmed: true,
+      },
+    });
+
+    if (existingSubscription) {
+      throw new ConflictException('Email already subscribed.');
+    }
+
+    const newSubscription = this.subscriptionRepository.create({
       email,
       city,
       frequency,
       confirmed: false,
     });
 
-    // TODO: 409, Email already subscribed
+    const savedSubscription =
+      await this.subscriptionRepository.save(newSubscription);
 
-    await this.subscriptionRepository.save(subscription);
+    console.log(savedSubscription.id);
 
     return 'Subscription successful. Confirmation email sent.';
   }
@@ -95,5 +133,19 @@ export class AppService {
 
       throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async unsubscribe(token: string): Promise<string> {
+    const subscription = await this.subscriptionRepository.findOne({
+      where: { id: token },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('Token not found.');
+    }
+
+    await this.subscriptionRepository.remove(subscription);
+
+    return 'Unsubscribed successfully.';
   }
 }

@@ -6,6 +6,7 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  Param,
 } from '@nestjs/common';
 import { AppService, type GetWeatherResponse } from './app.service';
 import { z } from 'zod';
@@ -21,6 +22,8 @@ const subscribeSchema = z.object({
   city: z.string().min(1),
   frequency: z.enum(['hourly', 'daily']),
 });
+
+const uuidSchema = z.string().uuid();
 
 @Controller()
 export class AppController {
@@ -41,10 +44,34 @@ export class AppController {
     try {
       subscribeSchema.parse(body);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_: unknown) {
+    } catch (_: any) {
       throw new HttpException('Invalid input', HttpStatus.BAD_REQUEST);
     }
 
     return this.appService.subscribe(email, city, frequency);
+  }
+
+  @Get('confirm/:token')
+  async confirmSubscription(@Param('token') token: string): Promise<string> {
+    try {
+      uuidSchema.parse(token);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_: any) {
+      throw new HttpException('Invalid token', HttpStatus.BAD_REQUEST);
+    }
+
+    return this.appService.confirm(token);
+  }
+
+  @Get('unsubscribe/:token')
+  async unsubscribe(@Param('token') token: string): Promise<string> {
+    try {
+      uuidSchema.parse(token);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_: any) {
+      throw new HttpException('Invalid token', HttpStatus.BAD_REQUEST);
+    }
+
+    return this.appService.unsubscribe(token);
   }
 }
