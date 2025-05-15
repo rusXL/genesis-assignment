@@ -18,7 +18,7 @@ if (!DATABASE_URL) {
       url: DATABASE_URL,
       entities: [Subscription],
       ssl: true,
-      synchronize: true, // Set to false in production
+      synchronize: false, // Set to false in production
     }),
     TypeOrmModule.forFeature([Subscription]),
   ],

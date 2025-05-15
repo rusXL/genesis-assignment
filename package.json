@@ -6,6 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "migration:generate": "ts-node ./node_modules/typeorm/cli.js migration:generate -d src/data-source.ts src/migrations/InitialMigration",
+    "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run -d src/data-source.ts",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

@@ -85,6 +85,7 @@ export class AppService {
     city: string,
     frequency: string,
   ): Promise<string> {
+    // TODO: if city doesn't exist
     const existingSubscription = await this.subscriptionRepository.findOne({
       where: {
         email,
