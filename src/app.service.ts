@@ -76,6 +76,7 @@ export class AppService {
         throw new HttpException('City not found', HttpStatus.NOT_FOUND);
       }
 
+      // should not happen
       throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
     }
   }
@@ -85,7 +86,27 @@ export class AppService {
     city: string,
     frequency: string,
   ): Promise<string> {
-    // TODO: if city doesn't exist
+    try {
+      await axios.get<WeatherApiResponse>(
+        `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}`,
+      );
+    } catch (err: any) {
+      const error = err as {
+        response: { status: number; data: { error: { code: number } } };
+      };
+
+      const status = error.response.status;
+      const code = error.response.data.error.code;
+
+      // what if city not found?
+      if (status === 400 && code === 1006) {
+        throw new HttpException('City not found', HttpStatus.NOT_FOUND);
+      }
+
+      // should not happen
+      throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
+    }
+
     const existingSubscription = await this.subscriptionRepository.findOne({
       where: {
         email,

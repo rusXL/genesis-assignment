@@ -17,9 +17,11 @@ class SubscribeDto {
   frequency: string;
 }
 
+const citySchema = z.string().min(1);
+
 const subscribeSchema = z.object({
   email: z.string().email(),
-  city: z.string().min(1),
+  city: citySchema,
   frequency: z.enum(['hourly', 'daily']),
 });
 
@@ -31,7 +33,10 @@ export class AppController {
 
   @Get('weather')
   getWeather(@Query('city') city: string): Promise<GetWeatherResponse> {
-    if (!city) {
+    try {
+      citySchema.parse(city);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_: any) {
       throw new HttpException('Invalid request', HttpStatus.BAD_REQUEST);
     }
     return this.appService.getWeather(city);
