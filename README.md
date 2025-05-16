@@ -2,27 +2,59 @@
 
 ## Overview
 
-The Weather API Application is built using Node.js, TypeScript, NestJS, PostgreSQL, and TypeORM. It leverages a free cloud PostgreSQL database provided by [Neon](https://neon.tech/) and integrates with a weather API to deliver weather-related data.
+The Weather API Application is a full-stack solution that allows users to:
 
-## Prerequisites
+- Retrieve real-time weather data by city.
+- Subscribe to periodic weather updates via email.
+- Confirm or cancel their subscription through secure tokenized links.
 
-Before running the application, ensure you have the following:
+The backend found in `api-app` is built with Node.js, TypeScript, NestJS, PostgreSQL, and TypeORM according to docs in `swagger.yaml`. The application uses the [WeatherAPI](https://www.weatherapi.com/) for weather data and [Neon](https://neon.tech/) for a free cloud-hosted PostgreSQL database.
 
-- A `.env` file configured according to `.env.example`.
-- A `DATABASE_URL` from [Neon](https://neon.tech/).
-- A `WEATHER_API_KEY` from [Weather API](https://www.weatherapi.com).
+A simple frontend app is also included to serve subscriptions.
 
-## Implementation
+## Project Structure
 
-The application structure is fully compliant with `swagger.yaml`.
+`api-app/`: Backend API
+`web-app/`: Frontend web app
+globally you may find also docs and docker related files
 
-The endpoints are implemented in `src/app.controller.ts` and `src/app.service.ts`.
+## API Endpoints
 
-Notably, the `/confirm` endpoint can return a 200 with "Subscription already confirmed" instead of "Subscription confirmed successfully" if a subscription was already confirmed.
+The endpoints are found at `api-app/src/app.controller.ts` and `api-app/src/app.service.ts`.
+
+TODO: explain each endpoint
+
+## Testing
+
+The api app is fully covered with functional tests located in `api-app/test/app.e2e-spec.ts`. To run the tests, execute:
+
+in `api-app/` directory:
+```bash
+pnpm run test:e2e
+```
 
 ## Installation and Setup
 
-### Local Setup (Port 3000)
+### Prerequisites
+
+Before running the application locally, ensure you have the following:
+
+In `api-app`
+- A `.env` file configured according to `.env.example`.
+- A `DATABASE_URL` from [Neon](https://neon.tech).
+- A `WEATHER_API_KEY` from [Weather API](https://www.weatherapi.com).
+
+In `web-app`
+- A `.env` file configured according to `.env.example`.
+- A `VITE_API_URL` set exactly to http://localhost:3000 (⚠️ no trailing slash).
+
+### Local Setup
+
+### `api-app`
+
+0. ```bash
+   cd api-app
+   ```
 
 1. **Install Dependencies**
 
@@ -30,7 +62,7 @@ Notably, the `/confirm` endpoint can return a 200 with "Subscription already con
    pnpm install
    ```
 
-   `pnpm` package manager is recommended since I used it during the development.
+   `pnpm` package manager is recommended since it was used during the development.
 
 2. **Run Migrations**
 
@@ -40,30 +72,43 @@ Notably, the `/confirm` endpoint can return a 200 with "Subscription already con
    pnpm run migration:run
    ```
 
-3. **Compile and Run**
-
-   Start the application
+3. **Start the application (port 3000)**
 
    ```bash
-   pnpm run start
+   pnpm run start:dev
    ```
 
-### Docker Setup (Port 3000)
+### `web-app`
 
-Build and run the application using Docker:
+0. ```bash
+   cd web-app
+   ```
+
+1. **Install Dependencies**
+
+   ```bash
+   pnpm install
+   ```
+
+   `pnpm` package manager is recommended since it was used during the development.
+
+
+2. **Start the application (port 5137)**
+
+   ```bash
+   pnpm run dev
+   ```
+
+
+### Local Setup with Docker (ports 3000 and 4137)
+
+Build and run the api-app and web-app using Docker:
 
 ```bash
 docker-compose up --build
 ```
 
-## Testing
-
-The application is fully covered with functional tests located in `test/app.e2e-spec.ts`. To run the tests, execute:
-
-```bash
-pnpm run test:e2e
-```
-
 ## Deployment
 
-The application is deployed and accessible at [Render App](https://genesis-assignment.onrender.com/weather?city=Warsaw).
+The api app is deployed at [Render](https://genesis-assignment.onrender.com/weather?city=Warsaw).
+The web app is deployed at [Vercel](https://genesis-assignment.vercel.app/).

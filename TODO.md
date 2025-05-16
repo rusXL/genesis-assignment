@@ -1,4 +1,3 @@
-Deploy frontend to Vercel
-Update README
+Describe each endpoint
 
 Email service
