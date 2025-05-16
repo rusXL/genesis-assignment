@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import axios, {AxiosError} from "axios"
-import { Toaster, toast } from 'sonner'
+import { Toaster, toast } from "sonner"
 
 
 const formSchema = z.object({
