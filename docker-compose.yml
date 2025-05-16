@@ -1,0 +1,20 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: dockerfile.backend
+    container_name: se-school-backend-ruslan-melnyk
+    ports:
+      - '3000:3000'
+    env_file:
+      - ./api-app/.env
+
+  frontend:
+    build:
+      context: .
+      dockerfile: dockerfile.frontend
+    container_name: se-school-frontend-ruslan-melnyk
+    ports:
+      - '4173:4173'
+    env_file:
+      - ./web-app/.env

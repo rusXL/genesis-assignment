@@ -14,6 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import axios, {AxiosError} from "axios"
 import { Toaster, toast } from "sonner"
 
+const API_URL = import.meta.env.VITE_API_URL;
+if (!API_URL) {
+  throw new Error('API URL is missing in .env');
+}
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -32,7 +36,7 @@ export default function App() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log("submit")
     try {
-      const response = await axios.post("https://genesis-assignment.onrender.com/subscribe", values)
+      const response = await axios.post(`${API_URL}/subscribe`, values)
       toast("Subcribed successfully", {
         description: response.data.message
       })

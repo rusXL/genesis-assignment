@@ -2,22 +2,23 @@
 FROM node:22-alpine
 
 # set working directory
-WORKDIR /app
+WORKDIR /backend
 
 # install pnpm
 RUN npm install -g pnpm
 
 # copy dependencies and install
-COPY package.json pnpm-lock.yaml ./
+COPY api-app/package.json api-app/pnpm-lock.yaml ./api-app/
+WORKDIR /backend/api-app
 RUN pnpm install
 
 # copy source
-COPY . .
+COPY api-app ./
 
 # build the app
-RUN pnpm build
+RUN pnpm run build
 
 # expose app port
 EXPOSE 3000
 
-CMD ["pnpm", "start:prod"]
+CMD sh -c "pnpm run migration:run && pnpm run start:prod"
