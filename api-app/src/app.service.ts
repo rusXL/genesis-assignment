@@ -107,7 +107,7 @@ export class AppService {
       throw new BadRequestException();
     }
 
-    const existingSubscription = await this.subscriptionRepository.findOne({
+    let existingSubscription = await this.subscriptionRepository.findOne({
       where: {
         email,
         city,
@@ -116,7 +116,16 @@ export class AppService {
     });
 
     if (existingSubscription) {
-      throw new ConflictException('Email already subscribed');
+      if (existingSubscription.frequency == frequency) {
+        throw new ConflictException('Email already subscribed');
+      } else {
+        existingSubscription = {
+          ...existingSubscription,
+          frequency,
+          confirmed: false, // it is important to get confirmation for the frequency update
+        };
+        await this.subscriptionRepository.save(existingSubscription);
+      }
     }
 
     const newSubscription = this.subscriptionRepository.create({

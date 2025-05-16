@@ -73,13 +73,13 @@ describe('AppController (e2e)', () => {
       token: expect.any(String),
     });
 
-    it('should work with valid email, city, frequency', async () => {
-      const validInput = {
-        email: 'clear@example.com',
-        city: 'London',
-        frequency: 'daily',
-      };
+    const validInput = {
+      email: 'clear@example.com',
+      city: 'London',
+      frequency: 'daily',
+    };
 
+    it('should work with valid email, city, frequency', async () => {
       const response = await request(app.getHttpServer())
         .post('/subscribe')
         .send(validInput);
@@ -134,18 +134,6 @@ describe('AppController (e2e)', () => {
     });
 
     it('should throw if email already subscribed', async () => {
-      const validInput = {
-        email: 'sameemail@example.com',
-        city: 'London',
-        frequency: 'daily',
-      };
-
-      const response = await request(app.getHttpServer())
-        .post('/subscribe')
-        .send(validInput);
-
-      expect(response.body).toEqual(ok);
-
       await request(app.getHttpServer())
         .post('/subscribe')
         .send(validInput)
@@ -154,6 +142,14 @@ describe('AppController (e2e)', () => {
           error: 'Conflict',
           message: 'Email already subscribed',
         });
+    });
+
+    it('should change frequency for subscription', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/subscribe')
+        .send({ ...validInput, frequency: 'hourly' });
+
+      expect(response.body).toEqual(ok);
     });
   });
 
