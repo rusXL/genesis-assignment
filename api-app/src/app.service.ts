@@ -9,8 +9,9 @@ import axios from 'axios';
 import { Repository } from 'typeorm';
 import { Subscription } from './subscription.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-
+import { MailerService } from '@nestjs-modules/mailer';
 import * as dotenv from 'dotenv';
+
 dotenv.config();
 const apiKey = process.env.Weather_API_KEY;
 if (!apiKey) {
@@ -45,6 +46,7 @@ export class AppService {
   constructor(
     @InjectRepository(Subscription)
     private subscriptionRepository: Repository<Subscription>,
+    private readonly mailerService: MailerService,
   ) {}
 
   async getWeather(city: string): Promise<GetWeatherResponse> {
@@ -137,6 +139,43 @@ export class AppService {
 
     const savedSubscription =
       await this.subscriptionRepository.save(newSubscription);
+
+    // uses the deployed api for convenience
+
+    // check your spam folder
+    await this.mailerService.sendMail({
+      to: email,
+      from: 'ruslan.melnyk.x@gmail.com',
+      subject: '🌤️ Confirm Your Weather Updates Subscription',
+      text: `Hello!
+
+You've subscribed to receive weather updates for ${city}.
+
+Frequency: ${frequency}
+
+To confirm your subscription, please click the link below:
+https://genesis-assignment.onrender.com/confirm/${savedSubscription.id}
+
+Thank you for using our weather service!`,
+
+      html: `
+    <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
+      <h2>🌤️ Weather Updates Subscription</h2>
+      <p>Hello,</p>
+      <p>Thanks for subscribing to weather updates for <strong>${city}</strong>!</p>
+      <p><strong>Update frequency:</strong> ${frequency}</p>
+      <p>To confirm your subscription, please click the button below:</p>
+      <p style="margin: 20px 0;">
+        <a href="https://genesis-assignment.onrender.com/confirm/${savedSubscription.id}" 
+           style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">
+          Confirm Subscription
+        </a>
+      </p>
+      <p>If you didn’t subscribe, you can safely ignore this email.</p>
+      <p>— The Weather Updates Team</p>
+    </div>
+  `,
+    });
 
     return {
       statusCode: HttpStatus.OK,

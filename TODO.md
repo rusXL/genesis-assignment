@@ -1,3 +1,2 @@
-Describe each endpoint
-
-Email service
+Update README
+Mail service sending frequent updates
