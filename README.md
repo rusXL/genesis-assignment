@@ -14,15 +14,74 @@ A simple frontend app is also included to serve subscriptions.
 
 ## Project Structure
 
-`api-app/`: Backend API
-`web-app/`: Frontend web app
-globally you may find also docs and docker related files
+- `api-app/`: Backend API
+- `web-app/`: Frontend web app
+- globally you may find also docs and docker related files
 
 ## API Endpoints
 
 The endpoints are found at `api-app/src/app.controller.ts` and `api-app/src/app.service.ts`.
 
-TODO: explain each endpoint
+### ```GET /weather?city=CityName```
+`Bad Request`
+- city is less than 1 char
+
+`Not Found`
+- if city is not available at weather api
+
+`Ok`
+- temperature
+- humidity
+- description
+
+### ```POST /subscribe```
+Body
+- email
+- city
+- frequency
+
+`Bad Request`
+- if body is of incorrect format
+- if city is not available at weather api
+
+`Conflict`
+- if email, frequency, city pair was already used
+
+`Ok`
+- allows to change frequency from one to another
+
+- message: 'Subscription successful. Confirmation email sent'
+- token
+
+```GET /confirm```
+Param
+- token
+
+`Bad Request`
+- invalid token format
+
+`Not found`
+- subscription with a given token was not found
+
+`Ok`
+- message: 'Subscription already confirmed'
+
+- message: 'Subscription confirmed successfully'
+
+
+### ```GET /unsubscribe```
+Param
+- token
+
+`Bad Request`
+- invalid token format
+
+`Not found`
+- subscription with a given token was not found
+
+`Ok`
+- message: 'Unsubscribed successfully'
+
 
 ## Testing
 
