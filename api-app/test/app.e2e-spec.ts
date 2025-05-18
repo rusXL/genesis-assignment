@@ -74,7 +74,7 @@ describe('AppController (e2e)', () => {
     });
 
     const validInput = {
-      email: 'clear@example.com',
+      email: 'ruslanmelnyk2005@gmail.com',
       city: 'London',
       frequency: 'daily',
     };
