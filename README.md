@@ -48,12 +48,13 @@ Body
 - if email, frequency, city pair was already used
 
 `Ok`
+- sends confirmation email (check your spam folder)
 - allows to change frequency from one to another
 
 - message: 'Subscription successful. Confirmation email sent'
 - token
 
-```GET /confirm```
+### ```GET /confirm```
 Param
 - token
 
@@ -102,6 +103,8 @@ In `api-app`
 - A `.env` file configured according to `.env.example`.
 - A `DATABASE_URL` from [Neon](https://neon.tech).
 - A `WEATHER_API_KEY` from [Weather API](https://www.weatherapi.com).
+- A `MAILDEV_INCOMING_USER` from your gmail account.
+- A `MAILDEV_INCOMING_PASS` from your gmail account.
 
 In `web-app`
 - A `.env` file configured according to `.env.example`.
@@ -171,3 +174,10 @@ docker-compose up --build
 
 The api app is deployed at [Render](https://genesis-assignment.onrender.com/weather?city=Warsaw).
 The web app is deployed at [Vercel](https://genesis-assignment.vercel.app/).
+
+
+## Conclusion
+
+So everything required was implemented.
+
+The only thing missing is a separate scheduler microservice which will send those weather updates with a given frequency.
