@@ -172,7 +172,13 @@ docker-compose up --build
 
 ## Deployment
 
+> [!NOTE]
+> Deployed API app can be slow due to the fact that I use a free render instance. 
+
+> Your free instance will spin down with inactivity, which can delay requests by 50 seconds or more.
+
 The api app is deployed at [Render](https://genesis-assignment.onrender.com/weather?city=Warsaw).
+
 The web app is deployed at [Vercel](https://genesis-assignment.vercel.app/).
 
 
