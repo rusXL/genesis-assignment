@@ -21,4 +21,8 @@ RUN pnpm run build
 # expose app port
 EXPOSE 3000
 
-CMD sh -c "pnpm run migration:run && pnpm run start:prod"
+CMD sh -c "pnpm run start:prod"
+
+# change to the value below if you have changed DATABASE_URL to your own
+
+# CMD sh -c "pnpm run migration:run && pnpm run start:prod"

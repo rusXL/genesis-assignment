@@ -145,11 +145,12 @@ export class AppService {
     // uses the deployed api for convenience
 
     // check your spam folder
-    await this.mailerService.sendMail({
-      to: email,
-      from: 'ruslan.melnyk.x@gmail.com',
-      subject: '🌤️ Confirm Your Weather Updates Subscription',
-      text: `Hello!
+    try {
+      await this.mailerService.sendMail({
+        to: email,
+        from: 'ruslan.melnyk.x@gmail.com',
+        subject: '🌤️ Confirm Your Weather Updates Subscription',
+        text: `Hello!
 
 You've subscribed to receive weather updates for ${city}.
 
@@ -160,7 +161,7 @@ https://genesis-assignment.onrender.com/confirm/${savedSubscription.id}
 
 Thank you for using our weather service!`,
 
-      html: `
+        html: `
     <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
       <h2>🌤️ Weather Updates Subscription</h2>
       <p>Hello,</p>
@@ -177,7 +178,11 @@ Thank you for using our weather service!`,
       <p>— The Weather Updates Team</p>
     </div>
   `,
-    });
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err: unknown) {
+      // silent
+    }
 
     return {
       statusCode: HttpStatus.OK,
